@@ -82,13 +82,15 @@ ui <- fluidPage(
                                     label = "CCT",
                                     value = 5000,
                                     min = 4000,
-                                    max = 10000)
+                                    max = 25000)
       ),
 
       conditionalPanel("input.refChoice == 'Blackbody'",
                        numericInput("ref.cctP",
                                     label = "CCT",
-                                    value = 3200)
+                                    value = 3200,
+                                    min = 1000,
+                                    max = 10000)
       ),
 
       width = 3),

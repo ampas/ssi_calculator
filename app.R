@@ -53,7 +53,7 @@ ui <- fluidPage(
 
       selectInput(inputId = 'refChoice',
                   label = 'Reference Spectra',
-                  choice = c('Default', 'Daylight', 'Blackbody', 'Custom'),
+                  choice = c('Default', 'Daylight', 'Blackbody'), # Add custom ref spec in future version , 'Custom'),
                   selected = c('Default')
       ),
 
@@ -91,23 +91,7 @@ ui <- fluidPage(
                                     value = 3200)
       ),
 
-      conditionalPanel("input.refChoice == 'Custom'",
-                       numericInput("ref.wlMin",
-                                    label = "Minimum Wavelength",
-                                    value = 300,
-                                    min = 300,
-                                    max = 400),
-                       numericInput("ref.wlMax",
-                                    label = "Maximum Wavelength",
-                                    value = 830,
-                                    min = 700,
-                                    max = 830),
-                       numericInput("ref.wlInc",
-                                    label = "Wavelength Increments",
-                                    value = 1,
-                                    min = 1,
-                                    max = 10)
-      ), width = 3),
+      width = 3),
 
     mainPanel(
       column(rHandsontableOutput('spectra.ref'), br(), width = 2),
@@ -159,17 +143,13 @@ server <- function(input, output, session) {
 
   observe({
     if (input$refChoice == 'Default') {
-                 spectra <- illuminantE(0, wavelength = 300:830)
-               } else if (input$refChoice == 'Daylight') {
-                 spectra <- daylightSpectra(input$ref.cctD, 300:830)
-               } else if (input$refChoice == 'Blackbody') {
-                 spectra <- planckSpectra(input$ref.cctP, 300:830)
-               } else if (input$refChoice == 'Custom') {
-                 spectra <- illuminantE(0, wavelength = seq(input$ref.wlMin,
-                                                            input$ref.wlMax,
-                                                            input$ref.wlInc))
-               }
-    })
+      spectra <- illuminantE(0, wavelength = 300:830)
+    } else if (input$refChoice == 'Daylight') {
+      spectra <- daylightSpectra(input$ref.cctD, 300:830)
+    } else if (input$refChoice == 'Blackbody') {
+        spectra <- planckSpectra(input$ref.cctP, 300:830)
+      }
+  })
 
 
 

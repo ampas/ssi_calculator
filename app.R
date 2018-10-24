@@ -3,7 +3,8 @@ library(shiny)
 library(rhandsontable)
 library(colorSpec)
 
-default.testSpec = Fs.5nm
+# Define some Test Spectra
+default.testSpec <- Fs.5nm
 
 # UI Code -----
 ui <- fluidPage(

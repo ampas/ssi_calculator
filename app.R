@@ -156,6 +156,20 @@ server <- function(input, output, session) {
                  updateNumericInput(session, inputId = 'ref.cctP', value = 3200)
                })
 
+  observe({
+    if (input$refChoice == 'Default') {
+                 spectra <- illuminantE(0, wavelength = 300:830)
+               } else if (input$refChoice == 'Daylight') {
+                 spectra <- daylightSpectra(input$ref.cctD, 300:830)
+               } else if (input$refChoice == 'Blackbody') {
+                 spectra <- planckSpectra(input$ref.cctP, 300:830)
+               } else if (input$refChoice == 'Custom') {
+                 spectra <- illuminantE(0, wavelength = seq(input$ref.wlMin,
+                                                            input$ref.wlMax,
+                                                            input$ref.wlInc))
+               }
+    })
+
 
 
 

@@ -143,6 +143,14 @@ server <- function(input, output, session) {
                  updateNumericInput(session, inputId = 'ref.cctP', value = 3200)
                })
 
+  # Define reactive values object for spectra and set defaults
+  spectra <-
+    reactiveValues(
+      # Equal energy default ... very small non-zero value to avoid errors and warnings elsewhere
+      ref = illuminantE(energy = 1e-5, wavelength = 300:830) %>% `organization<-`('matrix'),
+      test = illuminantE(energy = 1e-5, wavelength = 300:830) %>% `organization<-`('matrix')
+    )
+
   observe({
     if (input$refChoice == 'Default') {
       spectra <- illuminantE(0, wavelength = 300:830)
@@ -151,6 +159,25 @@ server <- function(input, output, session) {
     } else if (input$refChoice == 'Blackbody') {
         spectra <- planckSpectra(input$ref.cctP, 300:830)
       }
+  })
+
+  output$plot.ref <- renderPlot({
+    # Combine Test and Reference Spectra into one ColorSpec object
+    specnames(spectra$ref) <- 'Reference'
+    specnames(spectra$test) <- 'Test'
+    s <-bind(spectra$ref, spectra$test)
+    # Set yMax for the plot
+    if (max(s) < 1) {
+      yMax <- 1
+    } else {
+      yMax <- max(s)
+    }
+    # Plot
+    plot(s,
+         color=c('black','red'),
+         main='Spectral Power Distributions',
+         CCT = TRUE,
+         ylim = c(0, yMax))
   })
 
 

@@ -103,7 +103,7 @@ ui <- fluidPage(
                                     max = 830),
                        numericInput("ref.wlInc",
                                     label = "Wavelength Increments",
-                                    value = 2,
+                                    value = 1,
                                     min = 1,
                                     max = 10)
       ), width = 3),

@@ -62,6 +62,12 @@ ui <- fluidPage(
                   selected = c('Default')
       ),
 
+      # If default show details of spectra used
+      conditionalPanel("input.refChoice == 'Default'",
+                       h5("Default Reference Spectra Used:"),
+                       textOutput('cct.test')
+      ),
+
       # If daylight show radio buttons to specify CCT or a canonical daylight.  Returns proper CCT.
       conditionalPanel("input.refChoice == 'Daylight'",
                        radioButtons("ref.cieD",
@@ -225,6 +231,18 @@ server <- function(input, output, session) {
 
     return(spec.out)
   }
+
+  # Calculate the CCT of the test spectra and prepare text used for display in the UI
+  output$cct.test <- renderText({
+    cct <- computeCCT(spectra$test)
+    if (cct <= 4000) {
+      paste('Blackbody with CCT =', round(cct, digits = 2), 'K')
+    } else if (cct > 4000 && cct < 25000) {
+      paste('CIE Daylight with CCT =',  round(cct, digits = 2), 'K')
+    } else {
+      paste('CCT can not be calculated for the test spectra!')
+    }
+  })
 
   output$plot.ref <- renderPlot({
     # Interpolate and normalize data

@@ -211,16 +211,24 @@ server <- function(input, output, session) {
   })
 
   # Create observer and generate test spectra based on UI choices
-  observeEvent(input$testChoice,{
+  observe({
     if (input$testChoice != 'Custom') {
       # Subset if not custom
       s <- subset(default.testSpec, paste(input$testChoice, "$", sep=""))
     } else {
-      s = illuminantE(energy = 0, wavelength = 300:830) %>% `organization<-`('matrix')
+      validate(
+        need(input$test.wlMin >= 300, 'Min Wavelength must be >= 300'),
+        need(input$test.wlMax <= 830, 'Min Wavelength must be >= 830'),
+        need(input$test.wlInc >= 1,'Min Wavelength must be >= 830')
+      )
+      s = illuminantE(energy = 0,
+                      wavelength = seq(input$test.wlMin,
+                                       input$test.wlMax,
+                                       input$test.wlInc)
+      ) %>% `organization<-`('matrix')
     }
     spectra$test <- s
   })
-
   interpolateAndNormalize <- function(spec) {
     # Interpolate to 300-830nm in 1nm intervals
     spec.resample <- resample(
@@ -271,7 +279,37 @@ server <- function(input, output, session) {
 
   # SSI Result
   output$ssi.text <- renderText({
-    'SSI = '
+    '100'
+  })
+
+  # Generate Table of Test Sepctra
+  output$spectra.test <- renderRHandsontable({
+    if (input$testChoice == 'Custom') {
+      ro <- FALSE
+      spectra.test <- spectra$test
+    } else {
+      # Interpolate and normalize
+      spectra.test <- interpolateAndNormalize(spectra$test)
+      # Set read only flag to TRUE unless custom
+      ro <- TRUE
+    }
+    # Generate Table
+    rhandsontable(coredata(spectra.test),
+                  colHeaders='Test',
+                  digits = 10,
+                  width = 500,
+                  readOnly = ro) %>%
+      hot_col(1, format = '0.00000')
+  })
+
+  # Generate Table of Reference Sepctra
+  output$spectra.ref <- renderRHandsontable({
+    rhandsontable(coredata(spectra$ref),
+                  colHeaders='Reference',
+                  digits = 10,
+                  width = 500,
+                  readOnly = TRUE) %>%
+      hot_col(1, format = '0.00000')
   })
 
 

@@ -151,22 +151,74 @@ server <- function(input, output, session) {
       test = illuminantE(energy = 1e-5, wavelength = 300:830) %>% `organization<-`('matrix')
     )
 
+  # Create observer to generate reference spectra based on UI choices
   observe({
     if (input$refChoice == 'Default') {
-      spectra <- illuminantE(0, wavelength = 300:830)
-    } else if (input$refChoice == 'Daylight') {
-      spectra <- daylightSpectra(input$ref.cctD, 300:830)
-    } else if (input$refChoice == 'Blackbody') {
-        spectra <- planckSpectra(input$ref.cctP, 300:830)
+      #Check to see if compute CCT throws a NA
+      if (!is.na(computeCCT(spectra$test)[[1]])) {
+        # Calculate test spectra cct
+        cct <- computeCCT(spectra$test)
+        # Compute default reference spectra based on test cct
+        if (cct <= 4000) {
+          s <- planckSpectra(cct, 300:830)
+        } else {
+          s <- daylightSpectra(cct, 300:830)
+        }
+      } else {
+        warning('CCT of test spectra can not be calculated')
+        s <- spectra$test
       }
+    } else if (input$refChoice == 'Daylight') {
+      # Compute daylight reference spectra
+      validate(
+        need(input$ref.cctD <= 25000, 'CCT must be 25000K or less'),
+        need(input$ref.cctD >= 4000, 'CCT must be  at least 4000K')
+      )
+      s <- daylightSpectra(input$ref.cctD, 300:830)
+    } else if (input$refChoice == 'Blackbody') {
+      # Compute blackbody reference spectra
+      validate(
+        need(input$ref.cctP <= 10000, 'CCT must be 10000K or less'),
+        need(input$ref.cctP >= 1000, 'CCT must be  at least 1000K'))
+      s <- planckSpectra(input$ref.cctP, 300:830)
+    }
+    spectra$ref <- s
   })
 
+  # Create observer and generate test spectra based on UI choices
+  observeEvent(input$testChoice,{
+    if (input$testChoice != 'Custom') {
+      # Subset if not custom
+      s <- subset(default.testSpec, paste(input$testChoice, "$", sep=""))
+    } else {
+      s = illuminantE(energy = 0, wavelength = 300:830) %>% `organization<-`('matrix')
+    }
+    spectra$test <- s
+  })
+
+  interpolateAndNormalize <- function(spec) {
+    # Interpolate to 300-830nm in 1nm intervals
+    spec.resample <- resample(
+      spec,
+      wavelength = 300:830,
+      method = 'linear',
+      extrapolation = 0)
+
+    # Normailze 560nm to 1.0
+    spec.out <- normalize(spec.resample, 560)
+
+    return(spec.out)
+  }
+
   output$plot.ref <- renderPlot({
+    # Interpolate and normalize data
+    spectra.ref <- interpolateAndNormalize(spectra$ref)
+    spectra.test <- interpolateAndNormalize(spectra$test)
     # Combine Test and Reference Spectra into one ColorSpec object
-    specnames(spectra$ref) <- 'Reference'
-    specnames(spectra$test) <- 'Test'
-    s <-bind(spectra$ref, spectra$test)
-    # Set yMax for the plot
+    specnames(spectra.ref) <- 'Reference'
+    specnames(spectra.test) <- 'Test'
+    s <-bind(spectra.ref, spectra.test)
+    # Define yMax for the plot Y axis limit
     if (max(s) < 1) {
       yMax <- 1
     } else {

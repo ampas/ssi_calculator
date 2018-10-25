@@ -118,7 +118,10 @@ ui <- fluidPage(
       column(rHandsontableOutput('spectra.test'), br(), width = 2),
       # Plot
       column(plotOutput('plot.ref'), width = 8,
-             textOutput('text'))
+             h3('Results'),
+             hr(),
+             h4(textOutput('ssi.text'))
+             )
     )
   )
 )
@@ -266,6 +269,10 @@ server <- function(input, output, session) {
          ylim = c(0, yMax))
   })
 
+  # SSI Result
+  output$ssi.text <- renderText({
+    'SSI = '
+  })
 
 
 

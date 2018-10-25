@@ -2,128 +2,161 @@
 library(shiny)
 library(rhandsontable)
 library(colorSpec)
+library(shinythemes)
 
 # Define some Test Spectra
 default.testSpec <- Fs.5nm
 
 # UI Code -----
-ui <- fluidPage(
 
-  # Use ShinyJS
-  shinyjs::useShinyjs(),
+ui <- navbarPage(
 
-  # Application title
-  titlePanel("Academy Spectral Similarity Index (SSI) Calculator"),
-  br(),
+  # Title
+  title = 'Academy Spectral Similarity Index (SSI) Calculator',
+  windowTitle = 'SSI Calculator',
 
-  # Modify look of horizontal rule to make it more prominent
-  tags$head(
-    tags$style(HTML('hr {border-top: 1px solid #b3b3b3;}'))
+  # Theme
+  theme = shinytheme("flatly"),
+
+  # Tab Panel for Calculations
+  tabPanel( title ="Calculations",
+
+            # Enable ShinyJS to enable/disable elements
+            shinyjs::useShinyjs(),
+
+            # Modify look of horizontal rules to make them more prominent
+            tags$head(
+              tags$style(HTML('hr {border-top: 1px solid #b3b3b3;}'))
+            ),
+
+            # Sidebar ----
+            sidebarLayout(
+
+              # Add Dropdown for test spectra
+              sidebarPanel(
+                selectInput(inputId = 'testChoice',
+                            label = 'Test Spectra',
+                            choice = list( Fluorescent = c(specnames(default.testSpec)), 'Custom'),
+                            selected = c(specnames(default.testSpec)[1])
+                ),
+
+                # If test spectra is custom show widgets to specify wl range and increments
+                conditionalPanel("input.testChoice == 'Custom'",
+                                 # Inputs for CCT and Wavelength
+                                 numericInput("test.wlMin",
+                                              label = "Minimum Wavelength",
+                                              value = 300,
+                                              min = 300,
+                                              max = 400),
+                                 numericInput("test.wlMax",
+                                              label = "Maximum Wavelength",
+                                              value = 830,
+                                              min = 700,
+                                              max = 830),
+                                 numericInput("test.wlInc",
+                                              label = "Wavelength Increments",
+                                              value = 5,
+                                              min = 1,
+                                              max = 10)
+                ),
+
+                # Horizontal rule
+                hr(),
+
+                # Add dropdown for reference spectra
+                selectInput(inputId = 'refChoice',
+                            label = 'Reference Spectra',
+                            choice = c('Default', 'Daylight', 'Blackbody'), # Add custom ref spec in future version , 'Custom'),
+                            selected = c('Default')
+                ),
+
+                # If daylight show radio buttons to specify CCT or a canonical daylight.  Returns proper CCT.
+                conditionalPanel("input.refChoice == 'Daylight'",
+                                 radioButtons("ref.cieD",
+                                              label = '',
+                                              choiceNames = c('CCT','D50','D55','D65','D75'),
+                                              choiceValues = c('CCT',
+                                                               5000 * 14388 / 14380,
+                                                               5500 * 14388 / 14380,
+                                                               6500 * 14388 / 14380,
+                                                               7500 * 14388 / 14380),
+                                              inline = TRUE)
+                ),
+
+                # If blackbody how radio buttons to specify CCT or or Illuminant A
+                conditionalPanel("input.refChoice == 'Blackbody'",
+                                 radioButtons("ref.cieP",
+                                              label = '',
+                                              choiceNames = c('CCT','A'),
+                                              choiceValues = c('CCT', 2848),
+                                              inline = TRUE)
+                ),
+
+                # If daylight add a box where CCT is shown or specified
+                conditionalPanel("input.refChoice == 'Daylight'",
+                                 numericInput("ref.cctD",
+                                              label = "CCT",
+                                              value = 5000,
+                                              min = 4000,
+                                              max = 25000)
+                ),
+
+                # If blackbody add a box where CCT is shown or specified
+                conditionalPanel("input.refChoice == 'Blackbody'",
+                                 numericInput("ref.cctP",
+                                              label = "CCT",
+                                              value = 3200,
+                                              min = 1000,
+                                              max = 10000)
+                ),
+
+                width = 3),
+
+              # Main Panel -----
+              mainPanel(
+                column(
+                  # Table with reference spectra values
+                  h3('Data'),
+                  hr(),
+                  column(
+                    rHandsontableOutput('spectra.ref'),
+                    br(),
+                    width = 6),
+                  # Table with test spectra values
+                  column(rHandsontableOutput('spectra.test'),
+                         br(),
+                         width = 6),
+                  width = 4),
+                # Plot
+                column(
+                  h3('Plot'),
+                  hr(),
+                  plotOutput('plot.ref'),
+                  h3('Results'),
+                  hr(),
+                  # SSI Result
+                  column(
+                    h4("SSI"),
+                    textOutput('ssi.text'),
+                    width = 6
+                  ),
+                  # If default show details of spectra used
+                  column(
+                    conditionalPanel("input.refChoice == 'Default'",
+                                     h4("Default Reference Spectra Used"),
+                                     textOutput('cct.test')
+                    ),
+                    width = 6),
+                  width = 8
+                )
+              )
+            )
   ),
-
-  # Sidebar ----
-  sidebarLayout(
-
-    # Add Dropdown for test spectra
-    sidebarPanel(
-      selectInput(inputId = 'testChoice',
-                  label = 'Test Spectra',
-                  choice = list( Fluorescent = c(specnames(default.testSpec)), 'Custom'),
-                  selected = c(specnames(default.testSpec)[1])
-      ),
-
-      # If test spectra is custom show widgets to specify wl range and increments
-      conditionalPanel("input.testChoice == 'Custom'",
-                       # Inputs for CCT and Wavelength
-                       numericInput("test.wlMin",
-                                    label = "Minimum Wavelength",
-                                    value = 300,
-                                    min = 300,
-                                    max = 400),
-                       numericInput("test.wlMax",
-                                    label = "Maximum Wavelength",
-                                    value = 830,
-                                    min = 700,
-                                    max = 830),
-                       numericInput("test.wlInc",
-                                    label = "Wavelength Increments",
-                                    value = 5,
-                                    min = 1,
-                                    max = 10)
-      ),
-
-      # Horizontal rule
-      hr(),
-
-      # Add dropdown for reference spectra
-      selectInput(inputId = 'refChoice',
-                  label = 'Reference Spectra',
-                  choice = c('Default', 'Daylight', 'Blackbody'), # Add custom ref spec in future version , 'Custom'),
-                  selected = c('Default')
-      ),
-
-      # If default show details of spectra used
-      conditionalPanel("input.refChoice == 'Default'",
-                       h5("Default Reference Spectra Used:"),
-                       textOutput('cct.test')
-      ),
-
-      # If daylight show radio buttons to specify CCT or a canonical daylight.  Returns proper CCT.
-      conditionalPanel("input.refChoice == 'Daylight'",
-                       radioButtons("ref.cieD",
-                                    label = '',
-                                    choiceNames = c('CCT','D50','D55','D65','D75'),
-                                    choiceValues = c('CCT',
-                                                     5000 * 14388 / 14380,
-                                                     5500 * 14388 / 14380,
-                                                     6500 * 14388 / 14380,
-                                                     7500 * 14388 / 14380),
-                                    inline = TRUE)
-      ),
-
-      # If blackbody how radio buttons to specify CCT or or Illuminant A
-      conditionalPanel("input.refChoice == 'Blackbody'",
-                       radioButtons("ref.cieP",
-                                    label = '',
-                                    choiceNames = c('CCT','A'),
-                                    choiceValues = c('CCT', 2848),
-                                    inline = TRUE)
-      ),
-
-      # If daylight add a box where CCT is shown or specified
-      conditionalPanel("input.refChoice == 'Daylight'",
-                       numericInput("ref.cctD",
-                                    label = "CCT",
-                                    value = 5000,
-                                    min = 4000,
-                                    max = 25000)
-      ),
-
-      # If blackbody add a box where CCT is shown or specified
-      conditionalPanel("input.refChoice == 'Blackbody'",
-                       numericInput("ref.cctP",
-                                    label = "CCT",
-                                    value = 3200,
-                                    min = 1000,
-                                    max = 10000)
-      ),
-
-      width = 3),
-
-    # Main Panel -----
-    mainPanel(
-      # Table with reference spectra values
-      column(rHandsontableOutput('spectra.ref'), br(), width = 2),
-      # Table with test spectra values
-      column(rHandsontableOutput('spectra.test'), br(), width = 2),
-      # Plot
-      column(plotOutput('plot.ref'), width = 8,
-             h3('Results'),
-             hr(),
-             h4(textOutput('ssi.text'))
-             )
-    )
-  )
+  # Tab Panel for Calculations
+  tabPanel( title ="About",
+            'Written by the Academy of Motion Picture Arts and Sciences\n',
+            'For more info go to http://www.oscars.org'
+            )
 )
 
 

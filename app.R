@@ -154,9 +154,24 @@ ui <- navbarPage(
   ),
   # Tab Panel for Calculations
   tabPanel( title ="About",
-            'Written by the Academy of Motion Picture Arts and Sciences\n',
-            'For more info go to http://www.oscars.org'
+            tags$html(
+              tags$body(
+                p('Written and maintained by the Academy of Motion Picture Arts and Sciences'),
+                p('Source code can be found on',
+                  a(href='https://www.github.com/ampas/ssi_calculator/', 'Github', target='_blank')
+                  ),
+                p('For more info go to',
+                  a(href='http://www.oscars.org/ssi', 'http://www.oscars.org/ssi', target='_blank')
+                  ),
+                p('This calculator was built using',
+                  a(href='https://www.r-project.org/', 'R', target='_blank'), ',',
+                  a(href='https://shiny.rstudio.com/', 'Shiny', target='_blank'), 'and',
+                  a(href='https://cran.r-project.org/web/packages/colorSpec/index.html', 'ColorSpec', target='_blank')
+                  ),
+                p('Last updated - 10/25/2018')
             )
+            )
+  )
 )
 
 

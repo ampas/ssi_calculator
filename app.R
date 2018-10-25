@@ -253,7 +253,11 @@ server <- function(input, output, session) {
         need(input$ref.cctP <= 10000, 'CCT must be 10000K or less'),
         need(input$ref.cctP >= 1000, 'CCT must be  at least 1000K'))
       # Compute blackbody reference spectra
-      s <- planckSpectra(input$ref.cctP, 300:830)
+      if (input$ref.cieP == 'CCT') {
+        s <- planckSpectra(input$ref.cctP, 300:830)
+      } else {
+        s <- planckSpectra(input$ref.cctP, 300:830, c2 = 1.435e7)
+      }
     }
     spectra$ref <- s
   })

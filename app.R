@@ -183,19 +183,12 @@ server <- function(input, output, session) {
 
   # Gray out Daylight CCT numericInput if a canonical illuminant
   observeEvent(input$ref.cieD,
-               if (input$ref.cieD == "CCT"){
-                 shinyjs::enable('ref.cctD')
-               } else {
-                 shinyjs::disable('ref.cctD')
-               })
+               shinyjs::toggleState('ref.cctD', input$ref.cieD == "CCT"))
 
   # Gray out Blackbody CCT numericInput if a canonical illuminant
   observeEvent(input$ref.cieP,
-               if (input$ref.cieP == "CCT"){
-                 shinyjs::enable('ref.cctP')
-               } else {
-                 shinyjs::disable('ref.cctP')
-               })
+               shinyjs::toggleState('ref.cctP', input$ref.cieP == "CCT"))
+
 
   # Update Daylight CCT numbericInput if a canonical illuminant or 5000K if 'CCT'
   observeEvent(input$ref.cieD,

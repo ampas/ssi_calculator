@@ -302,6 +302,7 @@ server <- function(input, output, session) {
         # For CIE Illuminant A
         s <- planckSpectra(input$ref.cctP, 300:830, c2 = 1.435e7)
       }
+      spectra$ref <- s
     }
   })
 

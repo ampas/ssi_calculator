@@ -320,7 +320,7 @@ server <- function(input, output, session) {
       )
       if(!is.null(input$spectra.test)){
         t <- hot_to_r(input$spectra.test)
-        spectra$temp <- colorSpec(t,
+        spectra$test <- colorSpec(t,
                                   wavelength = getTestWl(),
                                   organization = 'matrix')
       }

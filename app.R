@@ -22,36 +22,36 @@ MAX_BLACKBODY_CCT     <- 10000
 
 ## Subfunctions ----
 interpolateAndNormalize <- function(spec) {
-  
+
   # Interpolate to MIN_WAVELENGTH-MAX_WAVELENGTH nm in 1nm intervals
   spec.resample <- resample(
     spec,
     wavelength = MIN_WAVELENGTH:MAX_WAVELENGTH,
     method = 'linear',
     extrapolation = 0)
-  
+
   # Normailze 560nm to 1.0
   spec.out <- normalize(spec.resample, 560)
-  
+
   return(spec.out)
 }
 
 # UI Code -----
 
 ui <- navbarPage(
-  
+
   # Title
   title = 'Academy Spectral Similarity Index (SSI) Calculator',
   windowTitle = 'SSI Calculator',
-  
+
   # Theme
   theme = shinytheme("flatly"),
-  
+
   # Common header above the tabs
   header = tagList(
     # Enable ShinyJS to enable/disable elements
     useShinyjs(),
-    
+
     # Modify look of horizontal rules to make them more prominent.
     # If more CSS starts to get added, it would be a good idea to pull it
     # out into a separate CSS file rather than putting it all inline.
@@ -59,14 +59,14 @@ ui <- navbarPage(
       tags$style('hr {border-top: 1px solid #b3b3b3;}')
     )
   ),
-  
+
   # Tab Panel for calculations
   tabPanel(
     title = "Calculations",
-    
+
     # Sidebar
     sidebarLayout(
-      
+
       # Add Dropdown for test spectrum
       sidebarPanel(
         width = 3,
@@ -76,7 +76,7 @@ ui <- navbarPage(
           choices = list(Fluorescent = specnames(default.testSpec), 'Custom'),
           selected = specnames(default.testSpec)[1]
         ),
-        
+
         # If test spectrum is custom, show widgets to specify wl range and increments
         conditionalPanel(
           "input.testChoice == 'Custom'",
@@ -103,10 +103,10 @@ ui <- navbarPage(
             max = 10
           )
         ),
-        
+
         # Horizontal rule
         hr(),
-        
+
         # Add dropdown for reference spectrum
         selectInput(
           inputId = 'refChoice',
@@ -114,7 +114,7 @@ ui <- navbarPage(
           choices = c('Default', 'Daylight', 'Blackbody'),
           selected = 'Default'
         ),
-        
+
         # If daylight show radio buttons to specify CCT or a canonical daylight.  Returns proper CCT.
         conditionalPanel(
           "input.refChoice == 'Daylight'",
@@ -130,7 +130,7 @@ ui <- navbarPage(
             inline = TRUE
           )
         ),
-        
+
         # If blackbody how radio buttons to specify CCT or or Illuminant A
         conditionalPanel(
           "input.refChoice == 'Blackbody'",
@@ -142,7 +142,7 @@ ui <- navbarPage(
             inline = TRUE
           )
         ),
-        
+
         # If daylight add a box where CCT is shown or specified
         conditionalPanel(
           "input.refChoice == 'Daylight'",
@@ -154,7 +154,7 @@ ui <- navbarPage(
             max = MAX_DAYLIGHT_CCT
           )
         ),
-        
+
         # If blackbody add a box where CCT is shown or specified
         conditionalPanel(
           "input.refChoice == 'Blackbody'",
@@ -167,7 +167,7 @@ ui <- navbarPage(
           )
         )
       ),
-      
+
       # Main Panel
       mainPanel(
         width = 9,
@@ -219,7 +219,7 @@ ui <- navbarPage(
       )
     )
   ),
-  
+
   # Tab Panel for information
   tabPanel(
     title = "About",
@@ -242,20 +242,20 @@ ui <- navbarPage(
 
 # Server Code ----
 server <- function(input, output, session) {
-  
+
   ## Observe Events ----
-  
+
   # Gray out Daylight CCT numericInput if a canonical illuminant
   observeEvent(input$ref.cieD, {
     toggleState('ref.cctD', input$ref.cieD == "CCT")
   })
-  
+
   # Gray out Blackbody CCT numericInput if a canonical illuminant
   observeEvent(input$ref.cieP, {
     toggleState('ref.cctP', input$ref.cieP == "CCT")
   })
-  
-  
+
+
   # Update Daylight CCT numbericInput if a canonical illuminant or 5000K if 'CCT'
   observeEvent(input$ref.cieD, {
     if (input$ref.cieD == "CCT") {
@@ -265,7 +265,7 @@ server <- function(input, output, session) {
     }
     updateNumericInput(session, inputId = 'ref.cctD', value = cct)
   })
-  
+
   # Update Blackbody CCT numbericInput if a canonical illuminant or 3200K if 'CCT'
   observeEvent(input$ref.cieP, {
     if (input$ref.cieP == "CCT") {
@@ -275,16 +275,25 @@ server <- function(input, output, session) {
     }
     updateNumericInput(session, inputId = 'ref.cctP', value = cct)
   })
-  
+
   ## Reactive Expressions ----
-  
-  # Reactive expression to get wavelengths
-  getTestWl <- reactive({
+
+  # Reactive expression to get the custom wavelengths
+  getCustomWl <- reactive({
     seq(input$test.wlMin,
         input$test.wlMax,
         input$test.wlInc)
   })
-  
+
+  # Reactive expression to get the current wavelengths that should be used
+  getCurrentWl <- reactive({
+    if (input$testChoice == 'Custom') {
+      getCustomWl()
+    } else {
+      seq(MIN_WAVELENGTH, MAX_WAVELENGTH)
+    }
+  })
+
   # Reactive epression to get test cct
   getTestCCT <- reactive({
     XYZ <- product(getTestSpec(),
@@ -296,7 +305,7 @@ server <- function(input, output, session) {
       computeCCT(getTestSpec())
     }
   })
-  
+
   # Reactive expression to get reference spectra for default mode
   getRefSpecDefault <- reactive({
     # Calculate test spectrum cct
@@ -307,14 +316,14 @@ server <- function(input, output, session) {
     } else {
       # Compute default reference spectrum based on test cct
       if (cct <= MIN_DAYLIGHT_CCT) {
-        spec <- planckSpectra(cct, MIN_WAVELENGTH:MAX_WAVELENGTH)
+        spec <- planckSpectra(cct, getCurrentWl())
       } else {
-        spec <- daylightSpectra(cct, MIN_WAVELENGTH:MAX_WAVELENGTH)
+        spec <- daylightSpectra(cct, getCurrentWl())
       }
     }
     spec
   })
-  
+
   # Reactive expression to get reference spectrum for daylight mode
   getRefSpecDaylight <- reactive({
     validate(
@@ -324,10 +333,10 @@ server <- function(input, output, session) {
            glue('CCT must be  at least {MIN_DAYLIGHT_CCT}K'))
     )
     # Compute daylight reference spectrum
-    spec <- daylightSpectra(input$ref.cctD, MIN_WAVELENGTH:MAX_WAVELENGTH)
+    spec <- daylightSpectra(input$ref.cctD, getCurrentWl())
     spec
   })
-  
+
   # Reactive expression to get reference spectrum for daylight mode
   getRefSpecBlackbody <- reactive({
     # Validate the input to make sure the range is good
@@ -340,14 +349,14 @@ server <- function(input, output, session) {
     # Compute blackbody reference spectrum
     if (input$ref.cieP == 'CCT') {
       # For generic blackbody of a given CCT
-      spec <- planckSpectra(input$ref.cctP, MIN_WAVELENGTH:MAX_WAVELENGTH)
+      spec <- planckSpectra(input$ref.cctP, getCurrentWl())
     } else {
       # For CIE Illuminant A
-      spec <- planckSpectra(input$ref.cctP, MIN_WAVELENGTH:MAX_WAVELENGTH, c2 = 1.435e7)
+      spec <- planckSpectra(input$ref.cctP, getCurrentWl(), c2 = 1.435e7)
     }
     spec
   })
-  
+
   getRefSpec <- reactive({
     switch(
       input$refChoice,
@@ -356,7 +365,7 @@ server <- function(input, output, session) {
       'Blackbody' = getRefSpecBlackbody()
     )
   })
-  
+
   getTestSpecTable <- reactive({
     if (input$testChoice != 'Custom') {
       # Subset if not custom
@@ -368,25 +377,25 @@ server <- function(input, output, session) {
         need(input$test.wlInc >= 0.1, 'Wavelength increments must be >= 0.1'),
         need(input$test.wlInc <= 10, 'Wavelength increments must be <= 10')
       )
-      illuminantE(0, getTestWl())
+      illuminantE(0, getCurrentWl())
     }
   })
-  
+
   getTestSpec <- reactive({
     if (input$testChoice != 'Custom') {
       getTestSpecTable()
     } else {
       req(input$spectra.test)
       table <- hot_to_r(input$spectra.test)
-      req(length(getTestWl()) == length(table))
+      req(length(getCurrentWl()) == length(table))
       colorSpec(table,
-                wavelength = getTestWl(),
+                wavelength = getCurrentWl(),
                 organization = 'matrix')
     }
   })
-  
+
   ## Outputs ----
-  
+
   # Calculate the CCT of the test spectrum and prepare text used for display in the UI
   output$cct.test <- renderText({
     cct <- getTestCCT()
@@ -399,7 +408,7 @@ server <- function(input, output, session) {
       glue('CIE Daylight with CCT = {round(cct, digits = 2)}K')
     }
   })
-  
+
   # Generate plot of test and reference spectra
   output$plot.ref <- renderPlot({
     # Calculate test and reference spectra
@@ -427,12 +436,12 @@ server <- function(input, output, session) {
          CCT = TRUE,
          ylim = c(0, yMax))
   })
-  
+
   # Calculate SSI
   output$ssi.text <- renderText({
     '100'
   })
-  
+
   # Generate table with test sepctrum
   output$spectra.test <- renderRHandsontable({
     if (input$testChoice == 'Custom') {
@@ -452,7 +461,7 @@ server <- function(input, output, session) {
                   readOnly = ro) %>%
       hot_col(1, format = '0.00000')
   })
-  
+
   # Generate Table of Reference Sepctra
   output$spectra.ref <- renderRHandsontable({
     rhandsontable(coredata(getRefSpec(), forcemat = TRUE),
@@ -461,7 +470,7 @@ server <- function(input, output, session) {
                   readOnly = TRUE) %>%
       hot_col(1, format = '0.00000')
   })
-  
+
 }
 
 # Run Application ----

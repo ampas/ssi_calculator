@@ -6,6 +6,14 @@ library(shinythemes)
 library(shinyjs)
 library(glue)
 
+# App revision info
+commit.id <- substr(system("git log --format='%H' -n 1", intern = TRUE),
+                    1, 7)
+commit.url <- paste0('https://www.github.com/ampas/ssi_calculator/commit/',
+                     commit.id)
+commit.datetime <- system("git show -s --format=%ci",
+                          intern = TRUE)
+
 # Load Test Spectra ----
 default.testSpec <- Fs.5nm
 
@@ -239,7 +247,22 @@ ui <- navbarPage(
       a(href='https://shiny.rstudio.com/', 'Shiny', target='_blank'), 'and',
       a(href='https://cran.r-project.org/web/packages/colorSpec/index.html', 'ColorSpec', target='_blank')
     ),
-    p('Last updated - 02/04/2019')
+    p('Current software versions : '),
+    p(tags$ul(
+        tags$li(R.version.string),
+        tags$li('Shiny', as.character(packageVersion('shiny'))),
+        tags$li('colorSpec', as.character(packageVersion('colorSpec')))
+      )
+      ),
+    p('Last updated - ',
+      commit.datetime
+    ),
+    p('Git Commit ID - ',
+      a(href=commit.url,
+        commit.id,
+        target='_blank'
+      )
+    )
   )
 )
 

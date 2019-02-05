@@ -235,7 +235,7 @@ ui <- navbarPage(
       a(href='https://shiny.rstudio.com/', 'Shiny', target='_blank'), 'and',
       a(href='https://cran.r-project.org/web/packages/colorSpec/index.html', 'ColorSpec', target='_blank')
     ),
-    p('Last updated - 02/02/2019')
+    p('Last updated - 02/04/2019')
   )
 )
 

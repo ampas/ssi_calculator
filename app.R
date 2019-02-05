@@ -202,15 +202,19 @@ ui <- navbarPage(
               # SSI Result
               column(
                 width = 6,
-                h4("SSI"),
-                textOutput('ssi.text')
+                h4("Spectral Similarity Index"),
+                wellPanel(
+                  textOutput('ssi.text')
+                  )
               ),
               column(
                 width = 6,
                 conditionalPanel(
                   "input.refChoice == 'Default'",
                   h4("Default Reference Spectrum Used"),
-                  textOutput('cct.test')
+                  wellPanel(
+                    textOutput('cct.test')
+                    )
                 )
               )
             )

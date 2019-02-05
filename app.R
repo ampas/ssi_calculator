@@ -306,6 +306,15 @@ server <- function(input, output, session) {
     }
   })
 
+  # Reactive expression to get the SSI for test/ref spectra
+  getSSI <- reactive({
+    computeSSI(
+      getTestSpec(),
+      getRefSpec()
+      )
+  })
+
+
   # Reactive expression to get reference spectra for default mode
   getRefSpecDefault <- reactive({
     # Calculate test spectrum cct
@@ -439,7 +448,13 @@ server <- function(input, output, session) {
 
   # Calculate SSI
   output$ssi.text <- renderText({
-    '100'
+    ssi <- getSSI()
+    glue(
+      strsplit(names(ssi)[1], "_")[[1]][2],
+      '=',
+      ssi[[1]],
+      .sep = " "
+      )
   })
 
   # Generate table with test sepctrum

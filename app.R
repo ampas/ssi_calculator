@@ -74,8 +74,10 @@ ui <- navbarPage(
                selectInput(
                  inputId = 'testChoice',
                  label = 'Test Spectrum',
-                 choices = list(Fluorescent = specnames(default.testSpec), 'Custom'),
-                 selected = specnames(default.testSpec)[1]
+                 choices = list('Custom',
+                                Fluorescent = specnames(default.testSpec)
+                                ),
+                 selected = 'Custom'
                ),
 
                # If test spectrum is custom, show widgets to specify wl range and increments
@@ -179,12 +181,12 @@ ui <- navbarPage(
                                 h3('Data'),
                                 hr(),
                                 fluidRow(
-                                  # Table with reference spectrum values
-                                  column(width = 6,
-                                         rHandsontableOutput('spectra.ref')),
                                   # Table with test spectrum values
                                   column(width = 6,
-                                         rHandsontableOutput('spectra.test'))
+                                         rHandsontableOutput('spectra.test')),
+                                  # Table with reference spectrum values
+                                  column(width = 6,
+                                         rHandsontableOutput('spectra.ref'))
                                 ),
                                 br()),
                          # Plot

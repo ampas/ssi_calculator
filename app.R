@@ -44,8 +44,7 @@ interpolateAndNormalize <- function(spec) {
   return(spec.out)
 }
 
-# UI Code -----
-
+# UI Code ----
 ui <- navbarPage(
 
   # Title
@@ -56,213 +55,217 @@ ui <- navbarPage(
   theme = shinytheme("flatly"),
 
   # Common header above the tabs
-  header = tagList(
-    # Enable ShinyJS to enable/disable elements
+  header = tagList(# Enable ShinyJS to enable/disable elements
     useShinyjs(),
 
     # Modify look of horizontal rules to make them more prominent.
     # If more CSS starts to get added, it would be a good idea to pull it
     # out into a separate CSS file rather than putting it all inline.
-    tags$head(
-      tags$style('hr {border-top: 1px solid #b3b3b3;}')
-    )
-  ),
+    tags$head(tags$style('hr {border-top: 1px solid #b3b3b3;}'))),
 
-  # Tab Panel for calculations
-  tabPanel(
-    title = "Calculations",
+  ## Calculations Tab Panel----
+  tabPanel(title = "Calculations",
 
-    # Sidebar
-    sidebarLayout(
+           # Sidebar
+           sidebarLayout(
+             # Add Dropdown for test spectrum
+             sidebarPanel(
+               width = 3,
+               selectInput(
+                 inputId = 'testChoice',
+                 label = 'Test Spectrum',
+                 choices = list(Fluorescent = specnames(default.testSpec), 'Custom'),
+                 selected = specnames(default.testSpec)[1]
+               ),
 
-      # Add Dropdown for test spectrum
-      sidebarPanel(
-        width = 3,
-        selectInput(
-          inputId = 'testChoice',
-          label = 'Test Spectrum',
-          choices = list(Fluorescent = specnames(default.testSpec), 'Custom'),
-          selected = specnames(default.testSpec)[1]
-        ),
+               # If test spectrum is custom, show widgets to specify wl range and increments
+               conditionalPanel(
+                 "input.testChoice == 'Custom'",
+                 # Inputs for CCT and Wavelength
+                 numericInput(
+                   "test.wlMin",
+                   label = "Minimum Wavelength",
+                   value = MIN_WAVELENGTH,
+                   min = MIN_WAVELENGTH,
+                   max = 400
+                 ),
+                 numericInput(
+                   "test.wlMax",
+                   label = "Maximum Wavelength",
+                   value = MAX_WAVELENGTH,
+                   min = 700,
+                   max = MAX_WAVELENGTH
+                 ),
+                 numericInput(
+                   "test.wlInc",
+                   label = "Wavelength Increments",
+                   value = 1,
+                   min = 0.1,
+                   max = 10
+                 )
+               ),
 
-        # If test spectrum is custom, show widgets to specify wl range and increments
-        conditionalPanel(
-          "input.testChoice == 'Custom'",
-          # Inputs for CCT and Wavelength
-          numericInput(
-            "test.wlMin",
-            label = "Minimum Wavelength",
-            value = MIN_WAVELENGTH,
-            min = MIN_WAVELENGTH,
-            max = 400
-          ),
-          numericInput(
-            "test.wlMax",
-            label = "Maximum Wavelength",
-            value = MAX_WAVELENGTH,
-            min = 700,
-            max = MAX_WAVELENGTH
-          ),
-          numericInput(
-            "test.wlInc",
-            label = "Wavelength Increments",
-            value = 1,
-            min = 0.1,
-            max = 10
-          )
-        ),
+               # Horizontal rule
+               hr(),
 
-        # Horizontal rule
-        hr(),
+               # Add dropdown for reference spectrum
+               selectInput(
+                 inputId = 'refChoice',
+                 label = 'Reference Spectrum',
+                 choices = c('Default', 'Daylight', 'Blackbody'),
+                 selected = 'Default'
+               ),
 
-        # Add dropdown for reference spectrum
-        selectInput(
-          inputId = 'refChoice',
-          label = 'Reference Spectrum',
-          choices = c('Default', 'Daylight', 'Blackbody'),
-          selected = 'Default'
-        ),
+               # If daylight show radio buttons to specify CCT or a
+               # canonical daylight. Returns proper CCT.
+               conditionalPanel(
+                 "input.refChoice == 'Daylight'",
+                 radioButtons(
+                   "ref.cieD",
+                   label = '',
+                   choiceNames = c('CCT', 'D50', 'D55', 'D65', 'D75'),
+                   choiceValues = c(
+                     'CCT',
+                     5000 * CORRECTION_FACTOR,
+                     5500 * CORRECTION_FACTOR,
+                     6500 * CORRECTION_FACTOR,
+                     7500 * CORRECTION_FACTOR
+                   ),
+                   inline = TRUE
+                 )
+               ),
 
-        # If daylight show radio buttons to specify CCT or a canonical daylight.  Returns proper CCT.
-        conditionalPanel(
-          "input.refChoice == 'Daylight'",
-          radioButtons(
-            "ref.cieD",
-            label = '',
-            choiceNames = c('CCT','D50','D55','D65','D75'),
-            choiceValues = c('CCT',
-                             5000 * CORRECTION_FACTOR,
-                             5500 * CORRECTION_FACTOR,
-                             6500 * CORRECTION_FACTOR,
-                             7500 * CORRECTION_FACTOR),
-            inline = TRUE
-          )
-        ),
+               # If blackbody how radio buttons to specify CCT or or Illuminant A
+               conditionalPanel(
+                 "input.refChoice == 'Blackbody'",
+                 radioButtons(
+                   "ref.cieP",
+                   label = '',
+                   choiceNames = c('CCT', 'A'),
+                   choiceValues = c('CCT', 2848),
+                   inline = TRUE
+                 )
+               ),
 
-        # If blackbody how radio buttons to specify CCT or or Illuminant A
-        conditionalPanel(
-          "input.refChoice == 'Blackbody'",
-          radioButtons(
-            "ref.cieP",
-            label = '',
-            choiceNames = c('CCT', 'A'),
-            choiceValues = c('CCT', 2848),
-            inline = TRUE
-          )
-        ),
+               # If daylight add a box where CCT is shown or specified
+               conditionalPanel(
+                 "input.refChoice == 'Daylight'",
+                 numericInput(
+                   "ref.cctD",
+                   label = "CCT",
+                   value = DEFAULT_DAYLIGHT_CCT,
+                   min = MIN_DAYLIGHT_CCT,
+                   max = MAX_DAYLIGHT_CCT
+                 )
+               ),
 
-        # If daylight add a box where CCT is shown or specified
-        conditionalPanel(
-          "input.refChoice == 'Daylight'",
-          numericInput(
-            "ref.cctD",
-            label = "CCT",
-            value = DEFAULT_DAYLIGHT_CCT,
-            min = MIN_DAYLIGHT_CCT,
-            max = MAX_DAYLIGHT_CCT
-          )
-        ),
+               # If blackbody add a box where CCT is shown or specified
+               conditionalPanel(
+                 "input.refChoice == 'Blackbody'",
+                 numericInput(
+                   "ref.cctP",
+                   label = "CCT",
+                   value = DEFAULT_BLACKBODY_CCT,
+                   min = MIN_BLACKBODY_CCT,
+                   max = MAX_BLACKBODY_CCT
+                 )
+               )
+             ),
 
-        # If blackbody add a box where CCT is shown or specified
-        conditionalPanel(
-          "input.refChoice == 'Blackbody'",
-          numericInput(
-            "ref.cctP",
-            label = "CCT",
-            value = DEFAULT_BLACKBODY_CCT,
-            min = MIN_BLACKBODY_CCT,
-            max = MAX_BLACKBODY_CCT
-          )
-        )
-      ),
+             # Main Panel
+             mainPanel(width = 9,
+                       fluidRow(
+                         column(width = 4,
+                                h3('Data'),
+                                hr(),
+                                fluidRow(
+                                  # Table with reference spectrum values
+                                  column(width = 6,
+                                         rHandsontableOutput('spectra.ref')),
+                                  # Table with test spectrum values
+                                  column(width = 6,
+                                         rHandsontableOutput('spectra.test'))
+                                ),
+                                br()),
+                         # Plot
+                         column(
+                           width = 8,
+                           h3('Plot'),
+                           hr(),
+                           plotOutput('plot.ref'),
+                           h3('Results'),
+                           hr(),
+                           fluidRow(
+                             # SSI Result
+                             column(
+                               width = 6,
+                               h4("Spectral Similarity Index"),
+                               wellPanel(textOutput('ssi.text'))
+                             ),
+                             column(
+                               width = 6,
+                               conditionalPanel(
+                                 "input.refChoice == 'Default'",
+                                 h4("Default Reference Spectrum Used"),
+                                 wellPanel(textOutput('cct.test'))
+                               )
+                             )
+                           )
+                         )
+                       ))
+           )),
 
-      # Main Panel
-      mainPanel(
-        width = 9,
-        fluidRow(
-          column(
-            width = 4,
-            h3('Data'),
-            hr(),
-            fluidRow(
-              # Table with reference spectrum values
-              column(
-                width = 6,
-                rHandsontableOutput('spectra.ref')
-              ),
-              # Table with test spectrum values
-              column(
-                width = 6,
-                rHandsontableOutput('spectra.test')
-              )
-            ),
-            br()
-          ),
-          # Plot
-          column(
-            width = 8,
-            h3('Plot'),
-            hr(),
-            plotOutput('plot.ref'),
-            h3('Results'),
-            hr(),
-            fluidRow(
-              # SSI Result
-              column(
-                width = 6,
-                h4("Spectral Similarity Index"),
-                wellPanel(
-                  textOutput('ssi.text')
-                  )
-              ),
-              column(
-                width = 6,
-                conditionalPanel(
-                  "input.refChoice == 'Default'",
-                  h4("Default Reference Spectrum Used"),
-                  wellPanel(
-                    textOutput('cct.test')
-                    )
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-  ),
-
-  # Tab Panel for information
+  ## About Tab Panel ----
   tabPanel(
     title = "About",
-    p('Written and maintained by the Academy of Motion Picture Arts and Sciences'),
-    p('Source code can be found on',
-      a(href='https://www.github.com/ampas/ssi_calculator/', 'Github', target='_blank')
-    ),
-    p('For more info go to',
-      a(href='http://www.oscars.org/ssi', 'http://www.oscars.org/ssi', target='_blank')
-    ),
-    p('This calculator was built using',
-      a(href='https://www.r-project.org/', 'R', target='_blank'), ',',
-      a(href='https://shiny.rstudio.com/', 'Shiny', target='_blank'), 'and',
-      a(href='https://cran.r-project.org/web/packages/colorSpec/index.html', 'ColorSpec', target='_blank')
-    ),
-    p('Current software versions : '),
-    p(tags$ul(
+    h2('Introduction'),
+    div(
+      includeMarkdown('INTRODUCTION.md'),
+      h2('Software'),
+      'This calculator was built using',
+      a(href = 'https://www.r-project.org/',
+        'R',
+        target = '_blank'),
+      ',',
+      a(href = 'https://shiny.rstudio.com/',
+        'Shiny',
+        target = '_blank'),
+      ',',
+      a(href = 'https://www.rstudio.com/products/shiny/shiny-server/',
+        'Shiny Server Open Source',
+        target = '_blank'),
+      'and',
+      a(href = 'https://cran.r-project.org/web/packages/colorSpec/index.html',
+        'colorSpec',
+        target = '_blank'),
+      br(),
+      'Current software versions : ',
+      tags$ul(
         tags$li(R.version.string),
-        tags$li('Shiny', as.character(packageVersion('shiny'))),
-        tags$li('colorSpec', as.character(packageVersion('colorSpec')))
-      )
-      ),
-    p('Last updated - ',
-      commit.datetime
+        tags$li('Shiny',
+                as.character(packageVersion('shiny'))),
+        tags$li(
+          try(
+            system('shiny-server --version',
+                 intern = TRUE,
+                 ignore.stderr = TRUE)[1]
+            )
+          ),
+        tags$li('colorSpec',
+                as.character(packageVersion('colorSpec')))
+        ),
+      'The calculator source code was last updated on ',
+      commit.datetime,
+      br(),
+      'The git commit id of the current calculator code is ',
+      a(href = commit.url,
+             commit.id,
+             target = '_blank'),
+      h2('License Terms'),
+      br(),
+      includeMarkdown('LICENSE.md')
     ),
-    p('Git Commit ID - ',
-      a(href=commit.url,
-        commit.id,
-        target='_blank'
-      )
-    )
+    style = "width:900px;"
   )
 )
 
@@ -408,10 +411,14 @@ server <- function(input, output, session) {
       subset(default.testSpec, glue("{input$testChoice}$"))
     } else {
       validate(
-        need(input$test.wlMin >= MIN_WAVELENGTH, glue('Min Wavelength must be >= {MIN_WAVELENGTH}')),
-        need(input$test.wlMax <= MAX_WAVELENGTH, glue('Max Wavelength must be <= {MAX_WAVELENGTH}')),
-        need(input$test.wlInc >= 0.1, 'Wavelength increments must be >= 0.1'),
-        need(input$test.wlInc <= 10, 'Wavelength increments must be <= 10')
+        need(input$test.wlMin >= MIN_WAVELENGTH,
+             glue('Min Wavelength must be >= {MIN_WAVELENGTH}')),
+        need(input$test.wlMax <= MAX_WAVELENGTH,
+             glue('Max Wavelength must be <= {MAX_WAVELENGTH}')),
+        need(input$test.wlInc >= 0.1,
+             'Wavelength increments must be >= 0.1'),
+        need(input$test.wlInc <= 10,
+             'Wavelength increments must be <= 10')
       )
       illuminantE(0, getCurrentWl())
     }

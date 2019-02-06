@@ -48,7 +48,7 @@ interpolateAndNormalize <- function(spec) {
 ui <- navbarPage(
 
   # Title
-  title = 'Academy Spectral Similarity Index (SSI) Calculator',
+  title = 'Academy Spectral Similarity Index (SSI) Calculator (BETA)',
   windowTitle = 'SSI Calculator',
 
   # Theme
@@ -210,10 +210,25 @@ ui <- navbarPage(
                                  wellPanel(textOutput('cct.test'))
                                )
                              )
+                           ),
+                           fluidRow(
+                             #Beta Notices
+                             column(
+                               width = 12,
+                               tags$b('NOTICE:'),
+                               div(
+                                 'The Academy SSI Calculator is currently in beta testing!'
+                               ),
+                               div(
+                                 'The calculator should not yet be considered a reference
+                               implemenation of the Spectral Similarity Index (SSI) as in may
+                               contain erorrs.'
+                               )
+                             )
                            )
                          )
-                       ))
-           )),
+             ))
+             )),
 
   ## About Tab Panel ----
   tabPanel(

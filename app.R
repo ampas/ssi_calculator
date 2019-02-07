@@ -524,6 +524,8 @@ server <- function(input, output, session) {
     rhandsontable(coredata(spectra.test, forcemat = TRUE),
                   colHeaders = 'Test',
                   digits = 10,
+                  width = 150,
+                  stretchH = 'all',
                   readOnly = ro) %>%
       hot_col(1, format = '0.00000')
   })
@@ -533,6 +535,8 @@ server <- function(input, output, session) {
     rhandsontable(coredata(getRefSpec(), forcemat = TRUE),
                   colHeaders = 'Reference',
                   digits = 10,
+                  width = 150,
+                  stretchH = 'all',
                   readOnly = TRUE) %>%
       hot_col(1, format = '0.00000')
   })

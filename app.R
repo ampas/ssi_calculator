@@ -224,7 +224,8 @@ ui <- navbarPage(
                                div(
                                  'The calculator should not yet be considered a reference
                                implemenation of the Spectral Similarity Index (SSI) as in may
-                               contain erorrs.'
+                               contain erorrs. Please log issues on',
+                                 a(href = 'https://github.com/ampas/ssi_calculator/issues', 'Github', target = '_blank')
                                )
                              )
                            )

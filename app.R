@@ -408,7 +408,7 @@ server <- function(input, output, session) {
       spec <- planckSpectra(input$ref.cctP, getCurrentWl())
     } else {
       # For CIE Illuminant A
-      spec <- planckSpectra(input$ref.cctP, getCurrentWl(), c2 = 1.435e7)
+      spec <- planckSpectra(input$ref.cctP, getCurrentWl(), c2 = 1.435e-2)
     }
     spec
   })

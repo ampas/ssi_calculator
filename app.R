@@ -392,10 +392,19 @@ server <- function(input, output, session) {
     )
     # Compute daylight reference spectrum
     spec <- daylightSpectra(input$ref.cctD, getCurrentWl())
+    if (input$ref.cieD == 5000 * CORRECTION_FACTOR_DAYLIGHT) {
+      specnames(spec) <- 'CIE D50'
+    } else if (input$ref.cieD == 5500 * CORRECTION_FACTOR_DAYLIGHT) {
+      specnames(spec) <- 'CIE D55'
+    } else if (input$ref.cieD == 6500 * CORRECTION_FACTOR_DAYLIGHT) {
+      specnames(spec) <- 'CIE D65'
+    } else if (input$ref.cieD == 7500 * CORRECTION_FACTOR_DAYLIGHT) {
+      specnames(spec) <- 'CIE D75'
+    }
     spec
   })
 
-  # Reactive expression to get reference spectrum for daylight mode
+  # Reactive expression to get reference spectrum for blackbody mode
   getRefSpecBlackbody <- reactive({
     # Validate the input to make sure the range is good
     validate(
@@ -414,6 +423,7 @@ server <- function(input, output, session) {
       spec <- planckSpectra(input$ref.cctP * CORRECTION_FACTOR_ILLUM_A,
                             getCurrentWl(),
                             c2 = 1.435e-2)
+      specnames(spec) <- 'CIE A'
     }
     spec
   })

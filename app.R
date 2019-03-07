@@ -18,15 +18,16 @@ commit.datetime <- system("git show -s --format=%ci",
 default.testSpec <- Fs.5nm
 
 # Define constants ----
-CORRECTION_FACTOR     <- 14388 / 14380
-MIN_WAVELENGTH        <- 300
-MAX_WAVELENGTH        <- 830
-DEFAULT_DAYLIGHT_CCT  <- 5000
-DEFAULT_BLACKBODY_CCT <- 3200
-MIN_DAYLIGHT_CCT      <- 4000
-MAX_DAYLIGHT_CCT      <- 25000
-MIN_BLACKBODY_CCT     <- 1000
-MAX_BLACKBODY_CCT     <- 10000
+CORRECTION_FACTOR_DAYLIGHT  <- 14388 / 14380
+CORRECTION_FACTOR_ILLUM_A   <- 14350 / 14388
+MIN_WAVELENGTH              <- 300
+MAX_WAVELENGTH              <- 830
+DEFAULT_DAYLIGHT_CCT        <- 5000
+DEFAULT_BLACKBODY_CCT       <- 3200
+MIN_DAYLIGHT_CCT            <- 4000
+MAX_DAYLIGHT_CCT            <- 25000
+MIN_BLACKBODY_CCT           <- 1000
+MAX_BLACKBODY_CCT           <- 10000
 
 ## Subfunctions ----
 interpolateAndNormalize <- function(spec) {
@@ -128,10 +129,10 @@ ui <- navbarPage(
                    choiceNames = c('CCT', 'D50', 'D55', 'D65', 'D75'),
                    choiceValues = c(
                      'CCT',
-                     5000 * CORRECTION_FACTOR,
-                     5500 * CORRECTION_FACTOR,
-                     6500 * CORRECTION_FACTOR,
-                     7500 * CORRECTION_FACTOR
+                     5000 * CORRECTION_FACTOR_DAYLIGHT,
+                     5500 * CORRECTION_FACTOR_DAYLIGHT,
+                     6500 * CORRECTION_FACTOR_DAYLIGHT,
+                     7500 * CORRECTION_FACTOR_DAYLIGHT
                    ),
                    inline = TRUE
                  )
@@ -144,7 +145,7 @@ ui <- navbarPage(
                    "ref.cieP",
                    label = '',
                    choiceNames = c('CCT', 'A'),
-                   choiceValues = c('CCT', 2848),
+                   choiceValues = c('CCT', 2855.542),
                    inline = TRUE
                  )
                ),
@@ -406,10 +407,13 @@ server <- function(input, output, session) {
     # Compute blackbody reference spectrum
     if (input$ref.cieP == 'CCT') {
       # For generic blackbody of a given CCT
-      spec <- planckSpectra(input$ref.cctP, getCurrentWl())
+      spec <- planckSpectra(input$ref.cctP,
+                            getCurrentWl())
     } else {
       # For CIE Illuminant A
-      spec <- planckSpectra(input$ref.cctP, getCurrentWl(), c2 = 1.435e-2)
+      spec <- planckSpectra(input$ref.cctP * CORRECTION_FACTOR_ILLUM_A,
+                            getCurrentWl(),
+                            c2 = 1.435e-2)
     }
     spec
   })

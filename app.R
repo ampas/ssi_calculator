@@ -6,17 +6,6 @@ library(shinythemes)
 library(shinyjs)
 library(glue)
 
-# App revision info
-commit.id <- substr(system("git log --format='%H' -n 1", intern = TRUE),
-                    1, 7)
-commit.url <- paste0('https://www.github.com/ampas/ssi_calculator/commit/',
-                     commit.id)
-commit.datetime <- system("git show -s --format=%ci",
-                          intern = TRUE)
-
-# Load Test Spectra ----
-default.testSpec <- Fs.5nm
-
 # Define constants ----
 CORRECTION_FACTOR_DAYLIGHT  <- 14388 / 14380
 CORRECTION_FACTOR_ILLUM_A   <- 14350 / 14388
@@ -28,6 +17,14 @@ MIN_DAYLIGHT_CCT            <- 4000
 MAX_DAYLIGHT_CCT            <- 25000
 MIN_BLACKBODY_CCT           <- 1000
 MAX_BLACKBODY_CCT           <- 10000
+
+# App revision info
+commit.id <- substr(system("git log --format='%H' -n 1", intern = TRUE),
+                    1, 7)
+commit.url <- paste0('https://www.github.com/ampas/ssi_calculator/commit/',
+                     commit.id)
+commit.datetime <- system("git show -s --format=%ci",
+                          intern = TRUE)
 
 ## Subfunctions ----
 interpolateAndNormalize <- function(spec) {
@@ -44,6 +41,11 @@ interpolateAndNormalize <- function(spec) {
 
   return(spec.out)
 }
+
+# Load Test Spectra ----
+cieF.testSpec <- interpolateAndNormalize(Fs.5nm)
+external.testSpec <- interpolateAndNormalize(readSpectra('data/testSources.txt'))
+default.testSpec <- bind(cieF.testSpec, external.testSpec)
 
 # UI Code ----
 ui <- navbarPage(
@@ -76,7 +78,9 @@ ui <- navbarPage(
                  inputId = 'testChoice',
                  label = 'Test Spectrum',
                  choices = list('Custom',
-                                Fluorescent = specnames(default.testSpec)
+                                'Gas Discharge' = specnames(external.testSpec)[3:4],
+                                'LED' = specnames(external.testSpec)[1:2],
+                                'Fluorescent' = specnames(cieF.testSpec)
                                 ),
                  selected = 'Custom'
                ),
@@ -538,7 +542,7 @@ server <- function(input, output, session) {
     # Generate Table
     rhandsontable(coredata(spectra.test, forcemat = TRUE),
                   colHeaders = 'Test',
-                  digits = 10,
+                  digits = 20,
                   width = 150,
                   stretchH = 'all',
                   readOnly = ro) %>%
@@ -549,7 +553,7 @@ server <- function(input, output, session) {
   output$spectra.ref <- renderRHandsontable({
     rhandsontable(coredata(getRefSpec(), forcemat = TRUE),
                   colHeaders = 'Reference',
-                  digits = 10,
+                  digits = 20,
                   width = 150,
                   stretchH = 'all',
                   readOnly = TRUE) %>%

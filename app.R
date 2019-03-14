@@ -64,7 +64,21 @@ ui <- navbarPage(
     # Modify look of horizontal rules to make them more prominent.
     # If more CSS starts to get added, it would be a good idea to pull it
     # out into a separate CSS file rather than putting it all inline.
-    tags$head(tags$style('hr {border-top: 1px solid #b3b3b3;}'))),
+    tags$head(tags$style('hr {border-top: 1px solid #b3b3b3}'),
+              tags$style('.navbar-default {background-color:#5f5f5f}'),
+              tags$style('.navbar-default .navbar-brand:hover {color:#c79f27}'),
+              tags$style('.navbar-default .navbar-nav li a:hover {color:#c79f27}'),
+              tags$style('.navbar-default .navbar-nav .active a:focus {background-color:#505050}'),
+              tags$style('.navbar-default .navbar-nav .active a:hover {background-color:#505050}'),
+              tags$style('.navbar-default .navbar-nav .active a {background-color:#505050}'),
+              tags$style('h1 {color:#c79f27}'),
+              tags$style('h2 {color:#c79f27}'),
+              tags$style('h3 {color:#c79f27}'),
+              tags$style('a {color:#c79f27}'),
+              tags$style('a:hover {color:#c79f27}'),
+              tags$style('.well {background-color:#f0f0f0}')
+              )
+    ),
 
   ## Calculations Tab Panel----
   tabPanel(title = "Calculations",

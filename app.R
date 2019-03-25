@@ -76,6 +76,7 @@ ui <- navbarPage(
               tags$style('h3 {color:#c79f27}'),
               tags$style('a {color:#c79f27}'),
               tags$style('a:hover {color:#c79f27}'),
+              tags$style('a:focus {color:#c79f27}'),
               tags$style('.well {background-color:#f0f0f0}')
               )
     ),

@@ -277,6 +277,11 @@ ui <- navbarPage(
       a(href = 'https://cran.r-project.org/web/packages/colorSpec/index.html',
         'colorSpec',
         target = '_blank'),
+      '(in particular the',
+      a(href = 'https://rdrr.io/cran/colorSpec/man/computeSSI.html',
+        'computeSSI',
+        target = '_blank'),
+      'method)',
       br(),
       'Current software versions : ',
       tags$ul(

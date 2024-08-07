@@ -1,0 +1,31 @@
+.navbar-dark .navbar-brand {
+    color: #BA9E5E !important;
+}
+
+.card-header {
+    background-color: #BA9E5E !important;
+    color: #000000 !important;
+}
+
+.navbar {
+    background-color: #000000 !important;
+    color: #BA9E5E !important;
+}
+
+
+body, .card-body, .container, .markdown, p {
+    color: #000000 !important;
+}
+
+body, .app-container {
+    background-color: #f2f2f2; /* Light grey background */
+    color: #000000;
+}
+
+#submit-cct{
+    margin-top: 10px !important;
+}
+
+#upload-data{
+    text-align: center !important;
+}

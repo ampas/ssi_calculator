@@ -8,7 +8,7 @@ Source code can be found on [Github](https://www.github.com/ampas/ssi_calculator
 For more information on the Spectral Similarity Index please visit: [http://www.oscars.org/ssi](http://www.oscars.org/ssi)
 
 ## Software
-This calculator was built using [R](https://www.r-project.org/), [Shiny](https://shiny.rstudio.com/), [Shiny Server Open Source](https://www.rstudio.com/products/shiny/shiny-server/) and [colorSpec](https://cran.r-project.org/web/packages/colorSpec/index.html).
+This calculator was built using [Python](https://www.python.org/) and [Dash](https://dash.plotly.com/)
 
 ## License Terms
 The Academy Spectral Similarity Index (SSI) Calculator is provided by the
